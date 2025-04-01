@@ -67,7 +67,7 @@ for url in url_list:
             "Taglia": taglie
         })
 
-    new_df = pd.DataFrame(prodotti)
+    new_df = pd.DataFrame(prodotti) # nuovo dataframe
     df = pd.concat([df, new_df])
 
 print(df)
