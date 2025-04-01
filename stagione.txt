@@ -1,0 +1,7 @@
+stagione
+categorie (donna, uomo, bambino …)
+modelli (decoltèè, mocassini …)
+taglie
+colori
+prezzi
+offerte (sconti …)
