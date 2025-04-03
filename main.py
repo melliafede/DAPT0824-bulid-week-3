@@ -1,73 +1,70 @@
-from bs4 import BeautifulSoup
-import requests
 import pandas as pd
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
 
-pd.options.display.max_rows = None  # Visualizza tutte le righe
-pd.options.display.max_columns = None  # Visualizza tutte le colonne
+bata_df = pd.read_csv("prodotti_bata_scraping.csv")
+bata_df["Marca"] = "Bata"
+due_lune_df = pd.read_csv("prodotti_due_lune.csv")
+due_lune_df["Marca"] = "Due Lune"
 
-headers = {"User-Agent": "Chrome/128.0"}
-url_1 = "https://www.bata.com/it/donna/scarpe/mocassini/?start=0&sz=500"
-url_2 = "https://www.bata.com/it/donna/scarpe/decollete/?start=0&sz=500"
-url_3 = "https://www.bata.com/it/donna/scarpe/stringate/?start=0&sz=500"
-url_4 = "https://www.bata.com/it/donna/scarpe/ballerine/?start=0&sz=500"
-url_5 = "https://www.bata.com/it/donna/scarpe/sneakers/?start=0&sz=500"
-url_6 = "https://www.bata.com/it/donna/scarpe/stivali-e-stivaletti/?start=0&sz=500"
-url_7 = "https://www.bata.com/it/donna/scarpe/sandali/?start=0&sz=500"
-url_8 = "https://www.bata.com/it/donna/scarpe/sport/?start=0&sz=500"
-url_9 = "https://www.bata.com/it/donna/scarpe/zeppe/?start=0&sz=500"
-url_10 = "https://www.bata.com/it/donna/scarpe/espadrillas/?start=0&sz=500"
-url_11 = "https://www.bata.com/it/donna/scarpe/ciabatte-e-infradito/?start=0&sz=500"
+df = bata_df._append(due_lune_df)
 
-url_list = [url_1, url_2, url_3, url_4, url_5, url_6, url_7, url_8, url_9, url_10, url_11]
-categorie_list = ["Mocassini", "Decollete", "Stringate", "Ballerine", "Sneakers", "Stivali", "Sandali", "Sport",
-                  "Zeppe", "Espadrillas", "Infradito"]
+df["Sconto"] = round((df["Prezzo_originario"] - df["Prezzo_effettivo"]) / df["Prezzo_originario"] * 100, 2)
 
-d = dict(zip(url_list, categorie_list))
+filter_uomo = df["Genere"] == "Uomo"
+filter_donna = df["Genere"] == "Donna"
+print(df[["Prezzo_effettivo", "Prezzo_originario", "Sconto"]])
 
-df = pd.DataFrame()
+print(df[filter_uomo].groupby(["Marca", "Categoria"])["Prezzo_effettivo"].agg(["min", "mean", "max"]).sort_values("Categoria"))
 
-for url in url_list:
-    html = requests.get(url, headers=headers)
-    soup = BeautifulSoup(html.text, "html.parser")
-    products = soup.find_all("div", class_="tile-body cc-tile-body")
-    print(len(products))
+sns.boxplot(data= df[filter_uomo], x="Categoria", y="Prezzo_effettivo", hue="Marca", order=sorted(df[filter_uomo]["Categoria"].unique()))
 
-    products = soup.find_all("div", class_="tile-body cc-tile-body")
+plt.title("Box plot")
+plt.xlabel("Categoria")
+plt.ylabel("Prezzo effettivo")
+plt.show()
 
-    prodotti = []
 
-    for product in products:
-        nome_tag = product.find("span", class_="cc-tile-product-name")
-        nome = nome_tag.get_text(strip=True)
 
-        price_tag = product.find("span", class_="cc-price")
-        price = price_tag.get_text(strip=True)
-
-        color_tag = product.find("div", class_="cc-color")
-        color_links = color_tag.find_all("a")
-        colors = []
-        for color_link in color_links:
-            color = color_link.get("title")
-            colors.append(color)
-
-        taglie = []
-        taglie_soup = product.find("div", class_="cc-size-list")
-        for taglia_soup in taglie_soup.find_all("a"):
-            if "/" in taglia_soup.text.strip().replace(",", ".").split(" ")[0]:
-                taglia = float(taglia_soup.text.strip().split("/")[0])
-            else:
-                taglia = float(taglia_soup.text.strip().replace(",", ".").split(" ")[0])
-            taglie.append(taglia)
-
-        prodotti.append({
-            "Categoria":d[url],
-            "Nome": nome,
-            "Prezzo": price,
-            "Colore": colors,
-            "Taglia": taglie
-        })
-
-    new_df = pd.DataFrame(prodotti) # nuovo dataframe
-    df = pd.concat([df, new_df])
-
-print(df)
+#
+# bata_df = bata_df.rename(columns={"Categoria": "Sotto-categoria"})
+# due_lune_df = due_lune_df.rename(columns={"Categoria": "Sotto-categoria"})
+#
+# print("Bata donna:")
+# # uniamo sandali e zeppe in una stessa categoria per confrontare con due lune
+#
+# mappatura = {
+#     "Espadrillas": "Sandali",
+#     "Zeppe": "Sandali",
+#     "Sandali": "Sandali",
+#     "Sandali_zeppe": "Sandali",
+#     "Decollete": "Decollete",
+#     "Decollete_slingback": "Decollete",
+#     "Stivali_stivaletti": "Stivali",
+#     "Stivali": "Stivali",
+#     "Scarponcini": "Stivali",
+#     "Tronchetti": "Stivali",
+#     "Sneakers": "Sneakers",
+#     "Sport": "Sport",
+#     "Stringate": "Scarpe_basse",
+#     "Mocassini": "Scarpe_basse",
+#     "Ballerine": "Scarpe_basse",
+#     "Scarpe_basse": "Scarpe_basse",
+#     "Ciabatte_infradito": "Ciabatte",
+#     "Pantofole": "Ciabatte"
+#
+# }
+#
+#
+# bata_df["Categoria"] = bata_df["Sotto-categoria"].apply(lambda x: mappatura.get(x, "Sconosciuto"))
+# due_lune_df["Categoria"] = due_lune_df["Sotto-categoria"].apply(lambda x: mappatura.get(x, "Sconosciuto"))
+#
+# bata_df_donna = bata_df.loc[bata_df["Genere"] == "Donna"]
+# due_lune_df_donna = due_lune_df.loc[due_lune_df["Genere"] == "Donna"]
+#
+# print(sorted(bata_df_donna["Sotto-categoria"].unique()))
+# print(sorted(bata_df_donna["Categoria"].unique()))
+#
+# print(sorted(due_lune_df_donna["Sotto-categoria"].unique()))
+# print(sorted(due_lune_df_donna["Categoria"].unique()))

@@ -1,0 +1,9 @@
+main.py --> script per analisi
+bata_scraping --> script per scraping bata
+due_lune_scraping --> script per scraping due lune
+prodotti_bata_scraping.csv
+prodotti_due_lune.csv
+
+
+- grafico comparitivo prezzi per categoria (min, max, media …)
+- grafico comparitivo numero prodotti per categoria/sotto-categoria?

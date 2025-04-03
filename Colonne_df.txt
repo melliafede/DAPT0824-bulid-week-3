@@ -1,0 +1,11 @@
+Genere (donna, uomo, bambino …)
+Categoria (decoltèè, mocassini …)
+
+Marca
+Nome_prodotto
+
+Prezzo_effettivo
+Prezzo_ordinario
+Offerte (sconti …) ?
+Colore
+Taglia
